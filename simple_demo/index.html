@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../phaser.min.js"></script>
+</head>
+<body>
+<div id="content"></div>
+<script>
+    let game = new Phaser.Game(800, 600, Phaser.AUTO, 'content', {preload: preload, create: create, update: update});
+
+    function preload() {
+        game.load.tilemap('mario', './assets/super_mario.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('tiles', './assets/super_mario.png');
+        game.load.image('player', './assets/phaser-dude.png');
+    }
+
+    let map;
+    let layer;
+    let cursors;
+
+    function create() {
+        map = game.add.tilemap('mario');
+        map.addTilesetImage('SuperMarioBros-World1-1', 'tiles');
+        layer = map.createLayer('World1');
+        layer.resizeWorld();
+        layer.wrap = true;
+
+        cursors = game.input.keyboard.createCursorKeys();
+    }
+
+    function update() {
+        if (cursors.left.isDown) {
+            game.camera.x -= 8;
+        } else if (cursors.right.isDown) {
+            game.camera.x += 8;
+        }
+
+        if (cursors.up.isDown) {
+            game.create.y -= 8;
+        } else if (cursors.down.isDown) {
+            game.create.y += 8;
+        }
+    }
+</script>
+</body>
+</html>

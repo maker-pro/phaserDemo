@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../phaser.min.js"></script>
+</head>
+<body>
+<div id="content"></div>
+
+<script>
+    // 禁用鼠标点击事件
+    document.addEventListener('mousedown', function(event) {
+        event.preventDefault();
+    });
+    document.addEventListener('mouseup', function(event) {
+        event.preventDefault();
+    });
+
+
+    var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'content', {
+        preload: preload,
+        create: create,
+        update: update,
+        render: render
+    });
+
+
+    let map;
+    let layer;
+    let cursors;
+    let sprite;
+
+    function preload() {
+        game.load.tilemap('desert', 'assets/desert.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('tiles', 'assets/tmw_desert_spacing.png');
+        game.load.image('car', 'assets/car90.png');
+    }
+
+    function create() {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        map = game.add.tilemap('desert');
+        map.addTilesetImage('Desert', 'tiles');
+
+        layer = map.createLayer('Ground');
+        layer.resizeWorld();
+
+        // 设置特定图块的碰撞
+        let cognisableElements = [1, 2, 3, 9, 10, 11, 17, 18, 19, 20, 21, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48]; // 可碰撞图块的编号列表
+        map.setCollision(cognisableElements, true, layer);
+
+        sprite = game.add.sprite(450, 80, 'car');
+        sprite.anchor.setTo(0.5, 0.5);
+        game.physics.enable(sprite);
+        game.camera.follow(sprite);
+
+        cursors = game.input.keyboard.createCursorKeys();
+        game.input.onDown.add(fillTiles, this);
+
+    }
+
+    function update() {
+        game.physics.arcade.collide(sprite, layer);
+
+        // 初始化 car 速度
+        sprite.body.velocity.x = 0;
+        sprite.body.velocity.y = 0;
+        sprite.body.angularVelocity = 0;    // 角速度
+
+        // 处理左右旋转
+        if (cursors.left.isDown) {
+            sprite.body.angularVelocity = -200;
+        } else if (cursors.right.isDown) {
+            sprite.body.angularVelocity = 200;
+        }
+
+        // 处理向前移动
+        if (cursors.up.isDown) {
+            sprite.body.velocity.copyFrom(game.physics.arcade.velocityFromAngle(sprite.angle, 300));
+        }
+    }
+
+    function render() {
+        game.debug.text('Click to fill tiles', 32, 32, 'rbg(0,0,0)');
+        game.debug.text('Tile X: ' + layer.getTileX(sprite.x), 32, 48, 'rbg(0,0,0)');
+        game.debug.text('Tile Y: ' + layer.getTileY(sprite.y), 32, 64, 'rbg(0,0,0)');
+    }
+
+    function fillTiles() {
+        map.fill(31, layer.getTileX(sprite.x), layer.getTileY(sprite.y), 8, 8);
+    }
+</script>
+
+</body>
+</html>
