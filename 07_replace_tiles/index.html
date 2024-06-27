@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../phaser.min.js"></script>
+</head>
+<body>
+<div id="content"></div>
+
+<script>
+    let game = new Phaser.Game(800, 600, Phaser.CANVAS, 'content', {
+        preload: preload,
+        create: create,
+        update: update,
+        render: render,
+    });
+
+    function preload() {
+        game.load.tilemap('desert', './assets/desert.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('car', './assets/car90.png');
+        game.load.image('tiles', './assets/tmw_desert_spacing.png');
+    }
+
+    let map;
+    let layer;
+    let sprite;
+    let cursors;
+
+    function create() {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        map = game.add.tilemap('desert');
+        map.addTilesetImage('Desert', 'tiles');
+
+        layer = map.createLayer('Ground');
+        layer.resizeWorld();
+
+        sprite = game.add.sprite(450, 80, 'car');
+        // 设置锚点，默认是(0, 0) 左上角，(0.5, 0.5) 以中心为锚点
+        sprite.anchor.setTo(0.5, 0.5);
+
+        // 对 sprite 启用物理引擎
+        game.physics.enable(sprite);
+
+        // 相机跟随 sprite移动
+        game.camera.follow(sprite);
+
+        // 点击事件指针
+        cursors = game.input.keyboard.createCursorKeys();
+        game.input.onDown.addOnce(replaceTiles, this);
+    }
+
+    function update() {
+        sprite.body.velocity.x = 0;
+        sprite.body.velocity.y = 0;
+
+        sprite.body.angularVelocity = 0;
+        if (cursors.left.isDown) {
+            sprite.body.angularVelocity = -150;
+        } else if (cursors.right.isDown) {
+            sprite.body.angularVelocity = 150;
+        }
+
+        if (cursors.up.isDown) {
+            sprite.body.velocity.copyFrom(game.physics.arcade.velocityFromAngle(sprite.angle, 300));
+        }
+    }
+
+    function render() {
+        game.debug.text('Click to replace tiles', 32, 32, '#cccccc');
+        game.debug.text('Tiles X:' + layer.getTileX(sprite.x), 32, 48, '#cccccc');
+        game.debug.text('Tiles Y:' + layer.getTileY(sprite.y), 32, 64, '#cccccc');
+    }
+
+    function replaceTiles() {
+        // 替换
+        // map.replace(31, 46);
+        // 交换
+        map.swap(31, 46);
+    }
+</script>
+</body>
+</html>
